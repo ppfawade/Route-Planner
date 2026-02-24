@@ -69,6 +69,7 @@ interface MapViewProps {
   end: Location | null;
   route: RouteData | null;
   pois: POI[];
+  isLoading?: boolean;
 }
 
 function ChangeView({ center, zoom }: { center: [number, number], zoom: number }) {
@@ -88,69 +89,80 @@ function FitBounds({ route }: { route: RouteData | null }) {
   return null;
 }
 
-export default function MapView({ start, end, route, pois }: MapViewProps) {
-  const center: [number, number] = start ? [start.lat, start.lon] : [37.7749, -122.4194]; // Default SF
+export default function MapView({ start, end, route, pois, isLoading }: MapViewProps) {
+  const center: [number, number] = start ? [start.lat, start.lon] : [19.0760, 72.8777]; // Default Mumbai
   const zoom = 13;
 
   return (
-    <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%', zIndex: 0 }}>
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      
-      {start && (
-        <Marker position={[start.lat, start.lon]} icon={startIcon}>
-          <Popup>
-            <div className="font-sans font-bold">Start: {start.display_name}</div>
-          </Popup>
-        </Marker>
+    <div className="relative h-full w-full">
+      {isLoading && (
+        <div className="absolute inset-0 z-[1001] bg-white/50 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-white p-4 rounded-2xl shadow-xl flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm font-medium text-gray-700">Updating Map...</p>
+          </div>
+        </div>
       )}
       
-      {end && (
-        <Marker position={[end.lat, end.lon]} icon={endIcon}>
-          <Popup>
-            <div className="font-sans font-bold">Destination: {end.display_name}</div>
-          </Popup>
-        </Marker>
-      )}
+      <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%', zIndex: 0 }}>
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        
+        {start && (
+          <Marker position={[start.lat, start.lon]} icon={startIcon}>
+            <Popup>
+              <div className="font-sans font-bold">Start: {start.display_name}</div>
+            </Popup>
+          </Marker>
+        )}
+        
+        {end && (
+          <Marker position={[end.lat, end.lon]} icon={endIcon}>
+            <Popup>
+              <div className="font-sans font-bold">Destination: {end.display_name}</div>
+            </Popup>
+          </Marker>
+        )}
 
-      {route && <Polyline positions={route.coordinates} color="#4f46e5" weight={5} opacity={0.7} />}
-      
-      {route && <FitBounds route={route} />}
+        {route && <Polyline positions={route.coordinates} color="#4f46e5" weight={5} opacity={0.7} />}
+        
+        {route && <FitBounds route={route} />}
 
-      {pois.map((poi) => (
-        <Marker 
-          key={poi.id} 
-          position={[poi.lat, poi.lon]} 
-          icon={poi.type === 'ev_charging' ? evIcon : gasIcon}
-        >
-          <Popup>
-            <div className="font-sans min-w-[200px]">
-              <h3 className="font-bold text-lg mb-1">{poi.name}</h3>
-              <div className="flex items-center gap-2 mb-2">
-                <span className={`text-xs px-2 py-0.5 rounded-full text-white ${poi.type === 'ev_charging' ? 'bg-green-500' : 'bg-orange-500'}`}>
-                  {poi.type === 'ev_charging' ? 'EV Charging' : 'Gas Station'}
-                </span>
-                {/* Check for fast charging tags */}
-                {poi.type === 'ev_charging' && (poi.tags['socket:ccs'] || poi.tags['socket:tesla_supercharger']) && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500 text-white">Fast</span>
-                )}
+        {pois.map((poi) => (
+          <Marker 
+            key={poi.id} 
+            position={[poi.lat, poi.lon]} 
+            icon={poi.type === 'ev_charging' ? evIcon : gasIcon}
+          >
+            <Popup>
+              <div className="font-sans min-w-[200px]">
+                <h3 className="font-bold text-lg mb-1">{poi.name}</h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`text-xs px-2 py-0.5 rounded-full text-white ${poi.type === 'ev_charging' ? 'bg-green-500' : 'bg-orange-500'}`}>
+                    {poi.type === 'ev_charging' ? 'EV Charging' : 'Gas Station'}
+                  </span>
+                  {/* Check for fast charging tags */}
+                  {poi.type === 'ev_charging' && (poi.tags['socket:ccs'] || poi.tags['socket:tesla_supercharger']) && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500 text-white">Fast</span>
+                  )}
+                </div>
+                
+                <div className="space-y-1 text-sm text-gray-600">
+                  {poi.tags.operator && <p><strong>Operator:</strong> {poi.tags.operator}</p>}
+                  {poi.tags.capacity && <p><strong>Capacity:</strong> {poi.tags.capacity}</p>}
+                  {poi.tags.opening_hours && <p><strong>Hours:</strong> {poi.tags.opening_hours}</p>}
+                  {poi.tags.fee && <p><strong>Fee:</strong> {poi.tags.fee === 'yes' ? 'Paid' : poi.tags.fee}</p>}
+                </div>
               </div>
-              
-              <div className="space-y-1 text-sm text-gray-600">
-                {poi.tags.operator && <p><strong>Operator:</strong> {poi.tags.operator}</p>}
-                {poi.tags.capacity && <p><strong>Capacity:</strong> {poi.tags.capacity}</p>}
-                {poi.tags.opening_hours && <p><strong>Hours:</strong> {poi.tags.opening_hours}</p>}
-                {poi.tags.fee && <p><strong>Fee:</strong> {poi.tags.fee === 'yes' ? 'Paid' : poi.tags.fee}</p>}
-              </div>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
-      
-      {!route && start && <ChangeView center={[start.lat, start.lon]} zoom={13} />}
-    </MapContainer>
+            </Popup>
+          </Marker>
+        ))}
+        
+        {!route && start && <ChangeView center={[start.lat, start.lon]} zoom={13} />}
+      </MapContainer>
+    </div>
   );
 }
 

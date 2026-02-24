@@ -33,3 +33,31 @@ export async function getTripAdvice(
     return "Sorry, I couldn't generate advice for this trip right now.";
   }
 }
+
+export async function getGeographicalFeatures(
+  start: string,
+  end: string
+): Promise<string[]> {
+  try {
+    const prompt = `
+      Identify 3-5 major geographical features (mountains, rivers, national parks, deserts, etc.) that one would encounter or pass near when driving from ${start} to ${end}.
+      Return ONLY a JSON array of strings. Example: ["Rocky Mountains", "Colorado River", "Great Plains"].
+      Do not include any other text.
+    `;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json"
+      }
+    });
+
+    const text = response.text;
+    if (!text) return [];
+    return JSON.parse(text);
+  } catch (error) {
+    console.error("Error generating geographical features:", error);
+    return [];
+  }
+}
