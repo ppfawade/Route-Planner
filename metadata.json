@@ -1,0 +1,5 @@
+{
+  "name": "EcoRoute Planner",
+  "description": "A smart trip planner for EV and ICE vehicles with route optimization and POI discovery.",
+  "requestFramePermissions": ["geolocation"]
+}

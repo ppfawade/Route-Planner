@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+.custom-marker-icon {
+  background: transparent;
+  border: none;
+}
