@@ -23,7 +23,6 @@ interface TripSnapshotModalProps {
   end: Location;
   route: RouteData;
   pois: POI[];
-  geoFeatures: string[];
 }
 
 // Component to handle map fitting and resizing
@@ -49,8 +48,7 @@ export default function TripSnapshotModal({
   start,
   end,
   route,
-  pois,
-  geoFeatures
+  pois
 }: TripSnapshotModalProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [capturing, setCapturing] = useState(false);
@@ -209,23 +207,6 @@ export default function TripSnapshotModal({
                   </div>
                 </div>
               </div>
-
-              {/* Scenic Highlights */}
-              {geoFeatures.length > 0 && (
-                <div className="pt-5" style={{ borderTop: '1px solid #f3f4f6' }}>
-                  <h4 className="text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5" style={{ color: '#9ca3af' }}>
-                    <Mountain className="w-3.5 h-3.5" />
-                    Scenic Highlights
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {geoFeatures.map((feat, i) => (
-                      <span key={i} className="px-2.5 py-1 text-xs rounded-md font-medium border" style={{ backgroundColor: '#eef2ff', color: '#4338ca', borderColor: '#e0e7ff' }}>
-                        {feat}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
             
             {/* Footer */}

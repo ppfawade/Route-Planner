@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { Search, MapPin, Navigation, Zap, Fuel, Loader2, Sparkles, Image as ImageIcon, Clock, Gauge } from 'lucide-react';
+import { Search, MapPin, Navigation, Zap, Fuel, Loader2, Image as ImageIcon, Clock, Gauge } from 'lucide-react';
 import { searchLocation, Location, getRoute, RouteData } from '../services/routeService';
 import { getPOIsAlongRoute, POI } from '../services/poiService';
-import { getGeographicalFeatures } from '../services/aiService';
 import { cn } from '../lib/utils';
 import TripSnapshotModal from './TripSnapshotModal';
 
@@ -26,8 +25,6 @@ export default function Sidebar({ onRouteCalculated, onReset }: SidebarProps) {
 
   // Snapshot Modal State
   const [isSnapshotOpen, setIsSnapshotOpen] = useState(false);
-  const [geoFeatures, setGeoFeatures] = useState<string[]>([]);
-  const [snapshotLoading, setSnapshotLoading] = useState(false);
 
   const handleSearch = async (type: 'start' | 'end', query: string) => {
     if (query.length < 3) return;
@@ -77,26 +74,9 @@ export default function Sidebar({ onRouteCalculated, onReset }: SidebarProps) {
     }
   };
 
-  const handleOpenSnapshot = async () => {
+  const handleOpenSnapshot = () => {
     if (!startLocation || !endLocation) return;
-    
-    setSnapshotLoading(true);
-    try {
-      // Fetch geo features before opening
-      const features = await getGeographicalFeatures(
-        startLocation.display_name,
-        endLocation.display_name
-      );
-      setGeoFeatures(features);
-      setIsSnapshotOpen(true);
-    } catch (err) {
-      console.error(err);
-      // Open anyway even if AI fails
-      setGeoFeatures([]);
-      setIsSnapshotOpen(true);
-    } finally {
-      setSnapshotLoading(false);
-    }
+    setIsSnapshotOpen(true);
   };
 
   const formatDuration = (seconds: number) => {
@@ -302,20 +282,10 @@ export default function Sidebar({ onRouteCalculated, onReset }: SidebarProps) {
               {/* Snapshot Button */}
               <button
                 onClick={handleOpenSnapshot}
-                disabled={snapshotLoading}
                 className="w-full py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white font-medium rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
               >
-                {snapshotLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Generating Snapshot...
-                  </>
-                ) : (
-                  <>
-                    <ImageIcon className="w-5 h-5" />
-                    Generate Trip Snapshot
-                  </>
-                )}
+                <ImageIcon className="w-5 h-5" />
+                Generate Trip Snapshot
               </button>
             </div>
           )}
@@ -337,7 +307,6 @@ export default function Sidebar({ onRouteCalculated, onReset }: SidebarProps) {
           end={endLocation}
           route={currentRoute}
           pois={currentPois}
-          geoFeatures={geoFeatures}
         />
       )}
     </>
